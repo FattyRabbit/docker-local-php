@@ -1,0 +1,94 @@
+version: "3"
+services:
+  proxy:
+    image: jwilder/nginx-proxy
+    container_name: proxy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "9001:9001"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /etc/nginx/conf.d:/etc/nginx/conf.d
+      - /etc/nginx/vhost.d:/etc/nginx/vhost.d
+      - /etc/nginx/ssl:/etc/nginx/ssl
+      - /usr/share/nginx/html:/usr/share/nginx/html
+    restart: always
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == docker-master
+    networks:
+      test-server-net:
+        ipv4_address: 172.19.0.2
+
+  test-server-for-kugyon-i:
+    image: centos7-with-phpenv_and_httpd
+    build:
+      context: ./centos7-phpenv-and-httpd
+      dockerfile: Dockerfile
+    container_name: test-server-for-kugyon-i
+    command: /sbin/init
+    ports:
+      - "10022:22"
+    volumes:
+      - /var/www/test-server-for-kugyon.i:/var/www
+      - /etc/httpd/test-server-for-kugyon.i/conf:/etc/httpd/conf
+      - /etc/httpd/test-server-for-kugyon.i/conf.d:/etc/httpd/conf.d
+    tty: true
+    stdin_open: true
+    privileged: true
+    restart: always
+    external_links:
+      - proxy
+      - dba
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == docker-worker01
+    networks:
+      test-server-net:
+        ipv4_address: 172.19.0.6
+
+  dba:
+    image: mysql/mysql-server
+    container_name: dba
+    ports:
+      - "3306:3306"
+    volumes:
+      - /etc/my.cnf:/etc/my.cnf
+      - /var/lib/mysql:/var/lib/mysql
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 12345678
+#      MYSQL_ROOT_HOST: "%"
+    restart: always
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == docker-master
+    networks:
+      test-server-net:
+        ipv4_address: 172.19.0.4
+
+networks:
+  test-server-net:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.19.0.0/16
