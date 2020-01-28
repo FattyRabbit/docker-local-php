@@ -2,10 +2,7 @@ FROM centos:7
 MAINTAINER kugyon.i <fatty.rabbit.75@gmail.com>
 
 # Declare Arguments
-ARG SERVER_NAME
-
-# Set the environment variables (defaults where required)
-ENV SERVER_NAME example.com:80
+ARG SERVER_NAME=example.com:80
 
 # Set the environment of anyenv
 ENV ANYENV_HOME /opt/anyenv

@@ -1,45 +1,75 @@
 version: "3"
 services:
   proxy:
-    image: jwilder/nginx-proxy
+    image: proxy
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
     container_name: proxy
     ports:
       - "80:80"
       - "443:443"
-      - "9001:9001"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /etc/nginx/conf.d:/etc/nginx/conf.d
-      - /etc/nginx/vhost.d:/etc/nginx/vhost.d
-      - /etc/nginx/ssl:/etc/nginx/ssl
-      - /usr/share/nginx/html:/usr/share/nginx/html
+      - ./proxy/conf.d:/etc/nginx/conf.d:rw
+      - ./proxy/vhost.d:/etc/nginx/vhost.d:rw
+      - ./proxy/certs:/etc/nginx/certs:ro
     restart: always
     logging:
       options:
         max-size: 5m
         max-file: "5"
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == docker-master
+    network_mode: host
+
+  dns:
+    image: andyshinn/dnsmasq
+    container_name: dns
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    extra_hosts:
+      - "712.local:127.0.0.1"
+      - "730.local:127.0.0.1"
+    restart: always
     networks:
       test-server-net:
         ipv4_address: 172.19.0.2
 
-  test-server-for-kugyon-i:
-    image: centos7-with-phpenv_and_httpd
+  dba:
+    image: dba-mariadb
     build:
-      context: ./centos7-phpenv-and-httpd
+      context: ./dba
       dockerfile: Dockerfile
-    container_name: test-server-for-kugyon-i
-    command: /sbin/init
+    container_name: dba
     ports:
-      - "10022:22"
+      - "3306:3306"
     volumes:
-      - /var/www/test-server-for-kugyon.i:/var/www
-      - /etc/httpd/test-server-for-kugyon.i/conf:/etc/httpd/conf
-      - /etc/httpd/test-server-for-kugyon.i/conf.d:/etc/httpd/conf.d
+      - ./dba/my.cnf:/etc/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_ROOT_HOST: "172.19.0.%"
+      TZ: Asia/Tokyo
+    restart: always
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    networks:
+      test-server-net:
+        ipv4_address: 172.19.0.3
+
+  web:
+    image: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        SERVER_NAME: $SERVER_NAME
+    container_name: web
+    command: /sbin/init
+    volumes:
+      - ./web/www:/var/www
+      - ./web/conf.d:/etc/httpd/conf.d
     tty: true
     stdin_open: true
     privileged: true
@@ -51,36 +81,6 @@ services:
       options:
         max-size: 5m
         max-file: "5"
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == docker-worker01
-    networks:
-      test-server-net:
-        ipv4_address: 172.19.0.6
-
-  dba:
-    image: mysql/mysql-server
-    container_name: dba
-    ports:
-      - "3306:3306"
-    volumes:
-      - /etc/my.cnf:/etc/my.cnf
-      - /var/lib/mysql:/var/lib/mysql
-#    environment:
-#      MYSQL_ROOT_PASSWORD: 12345678
-#      MYSQL_ROOT_HOST: "%"
-    restart: always
-    logging:
-      options:
-        max-size: 5m
-        max-file: "5"
-    deploy:
-      mode: global
-      placement:
-        constraints:
-          - node.role == docker-master
     networks:
       test-server-net:
         ipv4_address: 172.19.0.4
