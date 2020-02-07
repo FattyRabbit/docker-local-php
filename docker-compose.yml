@@ -20,7 +20,7 @@ services:
         max-size: 5m
         max-file: "5"
     networks:
-      test-server-net:
+      local-server-net:
         ipv4_address: 172.16.0.2
 
   dns:
@@ -34,7 +34,7 @@ services:
       - "730.local:172.16.0.4"
     restart: always
     networks:
-      test-server-net:
+      local-server-net:
         ipv4_address: 172.16.0.4
 
   dba:
@@ -57,7 +57,7 @@ services:
         max-size: 5m
         max-file: "5"
     networks:
-      test-server-net:
+      local-server-net:
         ipv4_address: 172.16.0.3
 
   web:
@@ -83,11 +83,11 @@ services:
         max-size: 5m
         max-file: "5"
     networks:
-      test-server-net:
+      local-server-net:
         ipv4_address: 172.16.0.5
 
 networks:
-  test-server-net:
+  local-server-net:
     driver: bridge
     ipam:
      driver: default
