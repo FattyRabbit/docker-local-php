@@ -5,6 +5,8 @@ services:
     container_name: web
     ports:
       - 80:80
+    stdin_open: true
+    privileged: true
     restart: always
     logging:
       options:
@@ -24,6 +26,7 @@ services:
       - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
       - ./dns/hosts-dnsmasq:/etc/hosts-dnsmasq
     restart: always
+    command: --log-facility=-
     cap_add:
       - NET_ADMIN
     networks:
