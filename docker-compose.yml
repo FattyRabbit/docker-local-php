@@ -1,20 +1,27 @@
 version: "3"
 services:
-  proxy:
-    image: proxy
+  web:
+    image: web
     build:
-      context: ./proxy
+      context: ./web
       dockerfile: Dockerfile
-    container_name: proxy
+      args:
+        SERVER_NAME: $SERVER_NAME
+    container_name: web
     ports:
       - "80:80"
       - "443:443"
+      - "9001:9001"
+    command: /sbin/init
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - ./proxy/conf.d:/etc/nginx/conf.d:rw
-      - ./proxy/vhost.d:/etc/nginx/vhost.d:rw
-      - ./proxy/certs:/etc/nginx/certs:ro
+      - ./shells:/root/shells:ro
+      - ../web_root:/var/www:rw
+    tty: true
+    stdin_open: true
+    privileged: true
     restart: always
+    external_links:
+      - dba
     logging:
       options:
         max-size: 5m
@@ -22,20 +29,6 @@ services:
     networks:
       local-server-net:
         ipv4_address: 172.16.0.2
-
-  dns:
-    image: andyshinn/dnsmasq
-    container_name: dns
-    ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-    extra_hosts:
-      - "712.local:127.0.0.1"
-      - "730.local:127.0.0.1"
-    restart: always
-    networks:
-      local-server-net:
-        ipv4_address: 172.16.0.4
 
   dba:
     image: dba-mariadb
@@ -60,31 +53,21 @@ services:
       local-server-net:
         ipv4_address: 172.16.0.3
 
-  web:
-    image: web
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-      args:
-        SERVER_NAME: $SERVER_NAME
-    container_name: web
-    command: /sbin/init
+  dns:
+    image: andyshinn/dnsmasq
+    container_name: dns
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
     volumes:
-      - ./web/www:/var/www:rw
-    tty: true
-    stdin_open: true
-    privileged: true
+      - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./dns/hosts-dnsmasq:/etc/hosts-dnsmasq
     restart: always
-    external_links:
-      - proxy
-      - dba
-    logging:
-      options:
-        max-size: 5m
-        max-file: "5"
+    cap_add:
+      - NET_ADMIN
     networks:
       local-server-net:
-        ipv4_address: 172.16.0.5
+        ipv4_address: 172.16.0.4
 
 networks:
   local-server-net:

@@ -8,8 +8,8 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
-PIDFile=/var/run/php-fpm7.3.3.pid
-ExecStart=$PHPENV_ROOT/versions/7.3.3/sbin/php-fpm -F
+PIDFile=/var/run/php-fpm${SERVICE_NAME}.pid
+ExecStart=$PHPENV_ROOT/versions/${TARGET_PHPENV_VERSION}/sbin/php-fpm -F
 ExecReload=/bin/kill -USR2 $MAINPID
 
 [Install]

@@ -22,8 +22,24 @@ RUN localedef -f UTF-8 -i ja_JP ja_JP
 # yumアップデート
 RUN yum -y update
 
+# remiリポジトリの登録
+RUN yum install -y epel-release
+RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+
 # apacheのインストール：v2.4.6
 RUN yum install -y httpd
+# SSHDのインストール
+RUN yum install -y openssh-server
+# sudoのインストール
+RUN yum install -y sudo
+# PHPの依存するパッケージをインストール
+RUN yum install -y gcc gcc-c++ wget make file php-fpm unzip git rsync automake libcurl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
+# supervisordのインストール
+RUN yum install -y supervisor
+# postfixをインストール
+RUN yum install -y postfix mailx
+# syslogの追加
+RUN yum install -y rsyslog
 
 # apacheの設定
 RUN rm -rf /etc/httpd/conf.d/welcome.conf
@@ -33,13 +49,6 @@ RUN sed -ri '/<Directory "\/var\/www\/html">/,/<\/Directory>/s/    AllowOverride
     sed -ri 's/DirectoryIndex index.html/DirectoryIndex index.html index.php/' /etc/httpd/conf/httpd.conf && \
     sed -i -e "s/\#ServerName www.example.com:80/ServerName ${SERVER_NAME}/g" /etc/httpd/conf/httpd.conf
 
-# remiリポジトリの登録
-RUN yum install -y epel-release
-RUN rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-
-# SSHDのインストール
-RUN yum -y install openssh-server
-
 # SSHDの設定
 RUN sed -ri 's/^#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -ri 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
@@ -47,12 +56,6 @@ RUN sed -ri 's/^#PermitRootLogin yes/PermitRootLogin yes/' /etc/ssh/sshd_config 
 
 # rootユーザーのパスワード変更
 RUN echo 'root:12345678' | chpasswd
-
-# sudoのインストール
-RUN yum -y install sudo
-
-# PHPの依存するパッケージをインストール
-RUN yum install -y gcc gcc-c++ wget make file php-fpm unzip git rsync automake libcurl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-ExtUtils-MakeMaker
 
 # system wide
 # anyenvを入れる
@@ -113,12 +116,7 @@ RUN ldconfig
 
 # php7.3をインストル
 ENV PATH $ANYENV_ENV/phpenv/bin:$ANYENV_ENV/phpenv/shims:$PATH
-RUN ls -al $ANYENV_ENV/phpenv
 RUN PHP_BUILD_CONFIGURE_OPTS=--with-pear PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3.0
-# php7.1.20をインストル
-RUN PHP_BUILD_CONFIGURE_OPTS=--with-pear PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.1.20
-# php7.3.3をインストル
-RUN PHP_BUILD_CONFIGURE_OPTS=--with-pear PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3.3
 
 # linkを作成
 RUN ln -s /opt/anyenv/envs/phpenv/shims/php /bin/php
@@ -128,16 +126,6 @@ RUN ln -s /opt/anyenv/envs/phpenv/shims/pecl /bin/pecl
 RUN yum install -y ImageMagick-devel ImageMagick
 
 # php環境を設定
-# 7.1.20
-RUN phpenv global 7.1.20 && \
-    phpenv rehash && \
-    yes '' | pecl install imagick
-RUN echo "extension = imagick.so" >> $PHPENV_ROOT/versions/7.1.20/etc/php.ini && \
-    echo 'xdebug.remote_enable = 1' >> $PHPENV_ROOT/versions/7.1.20/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_connect_back = 1' >> $PHPENV_ROOT/versions/7.1.20/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_port = 9001' >> $PHPENV_ROOT/versions/7.1.20/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.max_nesting_level = 512' >> $PHPENV_ROOT/versions/7.1.20/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.idekey = "PHPSTORM"' >> $PHPENV_ROOT/versions/7.1.20/etc/conf.d/xdebug.ini
 # 7.3.0
 RUN phpenv global 7.3.0 && \
     phpenv rehash && \
@@ -148,43 +136,29 @@ RUN echo "extension = imagick.so" >> $PHPENV_ROOT/versions/7.3.0/etc/php.ini && 
     echo 'xdebug.remote_port = 9001' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
     echo 'xdebug.max_nesting_level = 512' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
     echo 'xdebug.idekey = "PHPSTORM"' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini
-# 7.3.3
-RUN phpenv global 7.3.3 && \
-    phpenv rehash && \
-    yes '' | pecl install imagick
-RUN echo "extension = imagick.so" >> $PHPENV_ROOT/versions/7.3.3/etc/php.ini && \
-    echo 'xdebug.remote_enable = 1' >> $PHPENV_ROOT/versions/7.3.3/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_connect_back = 1' >> $PHPENV_ROOT/versions/7.3.3/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_port = 9001' >> $PHPENV_ROOT/versions/7.3.3/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.max_nesting_level = 512' >> $PHPENV_ROOT/versions/7.3.3/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.idekey = "PHPSTORM"' >> $PHPENV_ROOT/versions/7.3.3/etc/conf.d/xdebug.ini
+
+# php-fpmの設定
+RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.3.0.sock/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf
 
 # composerのインストール
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
-# supervisordのインストール
-RUN yum install -y supervisor
-
 # php-fpmサービスを追加
 COPY php-fpm*.service /etc/systemd/system/
 RUN grep -l '$PHPENV_ROOT' /etc/systemd/system/php-fpm*.service | xargs sed -i -e "s/\$PHPENV_ROOT/$(echo $PHPENV_ROOT | sed -e 's/\//\\\//g')/g"
-RUN cat /etc/systemd/system/php-fpm7.3.3.service
 
 # サンプルのVirtualhostの設定ファイルを追加
-RUN mkdir /var/www/sample-7.1.20
 RUN mkdir /var/www/sample-7.3.0
 COPY *_virtual.conf /etc/httpd/conf.d/
 RUN grep -l '$SERVER_NAME' /etc/httpd/conf.d/*_virtual.conf | xargs sed -i -e "s/\$SERVER_NAME/$(echo $SERVER_NAME | sed -e 's/\//\\\//g; s/\:/\\\:/g; s/\./\\\./g;')/g"
-RUN cat /etc/httpd/conf.d/7.3.0_virtual.conf
 
-# postfixをインストール
-RUN yum install -y postfix mailx
-RUN systemctl enable postfix
-
-# syslogの追加
-RUN yum install -y rsyslog
-RUN systemctl enable rsyslog
+# 自動開始
+RUN systemctl enable postfix rsyslog supervisord httpd
 
 # supervisordの設定
 RUN touch /etc/supervisord.conf
@@ -199,23 +173,6 @@ RUN touch /etc/supervisord.d/supervisord-httpd.ini && \
 RUN touch /etc/supervisord.d/supervisord-postfix.ini && \
     echo '[program:postfix]' >> /etc/supervisord.d/supervisord-postfix.ini && \
     echo 'command=systemctl start postfix' >> /etc/supervisord.d/supervisord-postfix.ini
-
-# php-fpmの設定
-RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.1.20/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.1.20/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.1.20.sock/g' $PHPENV_ROOT/versions/7.1.20/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.1.20/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.1.20/etc/php-fpm.d/www.conf
-RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.3.0.sock/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf
-RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.3.3/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.3.3/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.3.3.sock/g' $PHPENV_ROOT/versions/7.3.3/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.3.3/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.3.3/etc/php-fpm.d/www.conf
 
 EXPOSE 22 80 443
 
