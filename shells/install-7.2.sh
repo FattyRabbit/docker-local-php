@@ -3,12 +3,13 @@
 source ./functions.sh
 
 SERVICE_VERSION=7.2
-TARGET_PHPENV_VERSION=7.2.29
+TARGET_PHPENV_VERSION="${SERVICE_VERSION}snapshot"
 
 if [ ! $(service_exists php-fpm$SERVICE_VERSION) ]; then
   ORIGINAL_PHPENV_VERSION=`phpenv global | xargs`
-  PHP_BUILD_CONFIGURE_OPTS=--with-pear PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v $TARGET_PHPENV_VERSION;
+  PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v $TARGET_PHPENV_VERSION;
   phpenv global $TARGET_PHPENV_VERSION >> /dev/null 2>&1
+  yes '' | pecl install imagick
   echo "extension = imagick.so" >> $PHPENV_ROOT/versions/$TARGET_PHPENV_VERSION/etc/php.ini
   echo 'xdebug.remote_enable = 1' >> $PHPENV_ROOT/versions/$TARGET_PHPENV_VERSION/etc/conf.d/xdebug.ini
   echo 'xdebug.remote_connect_back = 1' >> $PHPENV_ROOT/versions/$TARGET_PHPENV_VERSION/etc/conf.d/xdebug.ini

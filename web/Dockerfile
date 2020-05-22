@@ -41,6 +41,10 @@ RUN yum install -y postfix mailx
 # syslogの追加
 RUN yum install -y rsyslog
 
+# postfixの設定
+RUN cp /etc/postfix/main.cf /etc/postfix/main.cf.bak
+RUN sed -ri 's/inet_interfaces = localhost/inet_interfaces = 127.0.0.1/' /etc/postfix/main.cf
+
 # apacheの設定
 RUN rm -rf /etc/httpd/conf.d/welcome.conf
 RUN cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.bak
@@ -75,8 +79,6 @@ RUN anyenv install phpenv
 
 # phpのビルド環境を整える
 RUN yum install -y libxml2-devel bison bison-devel libjpeg-devel libpng-devel readline-devel libmcrypt libmcrypt-devel libxslt-devel httpd-devel enchant-devel libXpm libXpm-devel freetype-devel t1lib t1lib-devel gmp-devel libicu-devel net-snmp net-snmp-devel bzip2 bzip2-devel
-RUN sed -i -e '/--with-mcrypt/d' $ANYENV_HOME/envs/phpenv/plugins/php-build/share/php-build/default_configure_options
-RUN sed -i -e '/--with-tidy/d' $ANYENV_HOME/envs/phpenv/plugins/php-build/share/php-build/default_configure_options
 RUN yum --enablerepo=epel install -y libtidy-devel re2c
 
 # cmakeのインストール
@@ -116,7 +118,7 @@ RUN ldconfig
 
 # php7.3をインストル
 ENV PATH $ANYENV_ENV/phpenv/bin:$ANYENV_ENV/phpenv/shims:$PATH
-RUN PHP_BUILD_CONFIGURE_OPTS=--with-pear PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3.0
+RUN PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3snapshot
 
 # linkを作成
 RUN ln -s /opt/anyenv/envs/phpenv/shims/php /bin/php
@@ -126,23 +128,23 @@ RUN ln -s /opt/anyenv/envs/phpenv/shims/pecl /bin/pecl
 RUN yum install -y ImageMagick-devel ImageMagick
 
 # php環境を設定
-# 7.3.0
-RUN phpenv global 7.3.0 && \
+# 7.3snapshot
+RUN phpenv global 7.3snapshot && \
     phpenv rehash && \
     yes '' | pecl install imagick
-RUN echo "extension = imagick.so" >> $PHPENV_ROOT/versions/7.3.0/etc/php.ini && \
-    echo 'xdebug.remote_enable = 1' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_connect_back = 1' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.remote_port = 9001' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.max_nesting_level = 512' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini && \
-    echo 'xdebug.idekey = "PHPSTORM"' >> $PHPENV_ROOT/versions/7.3.0/etc/conf.d/xdebug.ini
+RUN echo "extension = imagick.so" >> $PHPENV_ROOT/versions/7.3snapshot/etc/php.ini && \
+    echo 'xdebug.remote_enable = 1' >> $PHPENV_ROOT/versions/7.3snapshot/etc/conf.d/xdebug.ini && \
+    echo 'xdebug.remote_connect_back = 1' >> $PHPENV_ROOT/versions/7.3snapshot/etc/conf.d/xdebug.ini && \
+    echo 'xdebug.remote_port = 9001' >> $PHPENV_ROOT/versions/7.3snapshot/etc/conf.d/xdebug.ini && \
+    echo 'xdebug.max_nesting_level = 512' >> $PHPENV_ROOT/versions/7.3snapshot/etc/conf.d/xdebug.ini && \
+    echo 'xdebug.idekey = "PHPSTORM"' >> $PHPENV_ROOT/versions/7.3snapshot/etc/conf.d/xdebug.ini
 
 # php-fpmの設定
-RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.3.0.sock/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf && \
-    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.3.0/etc/php-fpm.d/www.conf
+RUN sed -i -e 's/^user = nobody/user = apache/g' $PHPENV_ROOT/versions/7.3snapshot/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^group = nobody/group = apache/g' $PHPENV_ROOT/versions/7.3snapshot/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm7.3.sock/g' $PHPENV_ROOT/versions/7.3snapshot/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^;listen.owner = nobody/listen.owner = apache/g' $PHPENV_ROOT/versions/7.3snapshot/etc/php-fpm.d/www.conf && \
+    sed -i -e 's/^;listen.group = nobody/listen.group = apache/g' $PHPENV_ROOT/versions/7.3snapshot/etc/php-fpm.d/www.conf
 
 # composerのインストール
 RUN curl -sS https://getcomposer.org/installer | php
@@ -153,7 +155,7 @@ COPY php-fpm*.service /etc/systemd/system/
 RUN grep -l '$PHPENV_ROOT' /etc/systemd/system/php-fpm*.service | xargs sed -i -e "s/\$PHPENV_ROOT/$(echo $PHPENV_ROOT | sed -e 's/\//\\\//g')/g"
 
 # サンプルのVirtualhostの設定ファイルを追加
-RUN mkdir /var/www/sample-7.3.0
+RUN mkdir /var/www/sample-7.3
 COPY *_virtual.conf /etc/httpd/conf.d/
 RUN grep -l '$SERVER_NAME' /etc/httpd/conf.d/*_virtual.conf | xargs sed -i -e "s/\$SERVER_NAME/$(echo $SERVER_NAME | sed -e 's/\//\\\//g; s/\:/\\\:/g; s/\./\\\./g;')/g"
 
