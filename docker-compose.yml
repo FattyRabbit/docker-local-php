@@ -16,6 +16,8 @@ services:
     volumes:
       - ./shells:/root/shells:ro
       - ../web_root:/var/www:rw
+      - ./web/conf.d/extra:/etc/httpd/conf.d/extra:ro
+      - ./web/conf.d/vhosts.conf:/etc/httpd/conf.d/vhosts.conf:ro
     tty: true
     stdin_open: true
     privileged: true

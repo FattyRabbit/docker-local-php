@@ -97,11 +97,9 @@ RUN wget https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.tar.gz -O cmake
 RUN yum remove -y libzip libzip-devel
 RUN mkdir /tmp/libzip && \
     cd /tmp/libzip && \
-    curl -sSLO https://libzip.org/download/libzip-1.4.0.tar.gz && \
+    wget https://libzip.org/download/libzip-1.4.0.tar.gz -O libzip-1.4.0.tar.gz && \
     tar zxf libzip-1.4.0.tar.gz && \
-    cd libzip-1.4.0/ && \
-    mkdir build && \
-    cd build && \
+    cd libzip-1.4.0 && \
     cmake -DCMAKE_INSTALL_PREFIX=/opt/libzip/1.4.0 && \
     make && \
     make install
@@ -116,7 +114,7 @@ RUN ldconfig
 
 # php7.3をインストル
 ENV PATH $ANYENV_ENV/phpenv/bin:$ANYENV_ENV/phpenv/shims:$PATH
-RUN PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy --with-libzip=/opt/libzip/1.4.0" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3snapshot
+RUN PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 PKG_CONFIG_PATH="/opt/libzip/1.4.0/lib/pkgconfig" phpenv install -v 7.3snapshot
 
 # linkを作成
 RUN ln -s /opt/anyenv/envs/phpenv/shims/php /bin/php
@@ -154,8 +152,8 @@ RUN grep -l '$PHPENV_ROOT' /etc/systemd/system/php-fpm*.service | xargs sed -i -
 
 # サンプルのVirtualhostの設定ファイルを追加
 RUN mkdir /var/www/sample-7.3
-COPY *_virtual.conf /etc/httpd/conf.d/
-RUN grep -l '$SERVER_NAME' /etc/httpd/conf.d/*_virtual.conf | xargs sed -i -e "s/\$SERVER_NAME/$(echo $SERVER_NAME | sed -e 's/\//\\\//g; s/\:/\\\:/g; s/\./\\\./g;')/g"
+RUN touch /etc/httpd/conf.d/vhosts.conf && \
+   echo 'Include conf.d/extra/7.3_virtual.conf' >> /etc/httpd/conf.d/vhosts.conf
 
 # 自動開始
 RUN systemctl enable postfix rsyslog supervisord httpd

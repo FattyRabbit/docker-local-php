@@ -58,6 +58,13 @@ $ git clone git@bitbucket.org:w012/docker-local-server.git
 ```
 Sourcetreeでも別に構いません。
 
+#### ウェブ設定ファイルの作成
+vhost.confファイルをCopyしてextraディレクトリのVhostファイルを追加します。
+
+```bash
+$ copy << Work Space >>/docker-local-server/web/conf.d/vhosts.conf.sample << Work Space >>/docker-local-server/web/conf.d/vhosts.conf
+```
+
 #### コンテイナーのBuild＆実行
 
 ```bash

@@ -7,7 +7,7 @@ TARGET_PHPENV_VERSION="${SERVICE_VERSION}snapshot"
 
 if [ ! $(service_exists php-fpm$SERVICE_VERSION) ]; then
   phpenv update
-  yum install -y sqlite-devel oniguruma-devel krb5-devel cmake3
+  yum install -y sqlite-devel oniguruma-devel krb5-devel
 
   mkdir /tmp/libzip
   cd /tmp/libzip
