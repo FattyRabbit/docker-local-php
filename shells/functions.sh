@@ -21,3 +21,11 @@ function convert_template() {
     echo $(eval echo "''${line}")
   done < $1
 }
+
+function installed_rpm() {
+  if rpm -qa | grep $1-$2  2>&1 > /dev/null; then
+    return 1
+  else
+    return 0
+  fi
+}

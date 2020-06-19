@@ -83,13 +83,11 @@ RUN yum --enablerepo=epel install -y libtidy-devel re2c
 
 # cmakeのインストール
 RUN wget https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.tar.gz -O cmake-3.12.0-Linux-x86_64.tar.gz && \
-    tar zxvf cmake-3.12.0-Linux-x86_64.tar.gz
-
-RUN rm -rf /usr/share/aclocal && \
+    tar zxvf cmake-3.12.0-Linux-x86_64.tar.gz && \
+    rm -rf /usr/share/aclocal && \
     rm -rf /usr/share/applications && \
-    rm -rf /usr/share/mime
-
-RUN mkdir -p /usr/bin && \
+    rm -rf /usr/share/mime && \
+    mkdir -p /usr/bin && \
     cp -r cmake-3.12.0-Linux-x86_64/bin/* /usr/bin/ && \
     mkdir -p /usr/share && \
     cp -r cmake-3.12.0-Linux-x86_64/share/* /usr/share/ && \
@@ -104,7 +102,7 @@ RUN mkdir /tmp/libzip && \
     cd libzip-1.4.0/ && \
     mkdir build && \
     cd build && \
-    cmake ../ && \
+    cmake -DCMAKE_INSTALL_PREFIX=/opt/libzip/1.4.0 && \
     make && \
     make install
 
@@ -118,7 +116,7 @@ RUN ldconfig
 
 # php7.3をインストル
 ENV PATH $ANYENV_ENV/phpenv/bin:$ANYENV_ENV/phpenv/shims:$PATH
-RUN PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3snapshot
+RUN PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy --with-libzip=/opt/libzip/1.4.0" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 phpenv install -v 7.3snapshot
 
 # linkを作成
 RUN ln -s /opt/anyenv/envs/phpenv/shims/php /bin/php
