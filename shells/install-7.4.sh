@@ -9,17 +9,8 @@ if [ ! $(service_exists php-fpm$SERVICE_VERSION) ]; then
   phpenv update
   yum install -y sqlite-devel oniguruma-devel krb5-devel
 
-  mkdir /tmp/libzip
-  cd /tmp/libzip
-  curl -sSLO https://libzip.org/download/libzip-1.5.2.tar.gz
-  tar zxf libzip-1.5.2.tar.gz
-  cd libzip-1.5.2/
-  cmake -DCMAKE_INSTALL_PREFIX=/opt/libzip/1.5.2
-  make
-  make install
-
   ORIGINAL_PHPENV_VERSION=`phpenv global | xargs`
-  PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 PKG_CONFIG_PATH="/opt/libzip/1.5.2/lib64/pkgconfig" phpenv install -v $TARGET_PHPENV_VERSION;
+  PHP_BUILD_CONFIGURE_OPTS="--with-pear --with-mcrypt --with-tidy" PHP_BUILD_EXTRA_MAKE_ARGUMENTS=-j4 PKG_CONFIG_PATH="/opt/libzip/1.4.0/lib/pkgconfig" phpenv install -v $TARGET_PHPENV_VERSION;
   phpenv global $TARGET_PHPENV_VERSION >> /dev/null 2>&1
   yes '' | pecl install imagick
   echo "extension = imagick.so" >> $PHPENV_ROOT/versions/$TARGET_PHPENV_VERSION/etc/php.ini
