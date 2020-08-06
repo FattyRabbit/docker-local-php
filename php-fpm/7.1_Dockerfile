@@ -15,7 +15,7 @@ RUN pecl install xdebug \
 #Composer install
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-#COPY php.ini /usr/local/etc/php/
+COPY php.ini /usr/local/etc/php/
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
