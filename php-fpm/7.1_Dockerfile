@@ -1,0 +1,24 @@
+FROM php:7.1-fpm
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NOWARNINGS yes
+
+RUN apt-get update
+RUN apt-get install -y wget libjpeg-dev libfreetype6-dev
+RUN apt-get install -y gcc make libjpeg-dev zlib1g-dev mariadb-client libfreetype6-dev libjpeg62-turbo-dev libpng-dev libmcrypt-dev libzip-dev \
+  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+  && docker-php-ext-install -j$(nproc) gd zip mysqli pdo_mysql bcmath
+
+RUN pecl install xdebug \
+  && docker-php-ext-enable xdebug
+
+#Composer install
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+#COPY php.ini /usr/local/etc/php/
+
+ENV COMPOSER_ALLOW_SUPERUSER 1
+
+ENV COMPOSER_HOME /composer
+
+ENV PATH $PATH:/composer/vendor/bin

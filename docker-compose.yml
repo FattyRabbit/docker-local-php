@@ -1,29 +1,33 @@
 version: "3"
 services:
+  datastore:
+    image: busybox
+    container_name: datastore
+    volumes:
+      - ../web_root:/var/www:rw
+      - ./dba/mysql:/var/lib/mysql
   web:
     image: web
     build:
       context: ./web
       dockerfile: Dockerfile
-      args:
-        SERVER_NAME: $SERVER_NAME
     container_name: web
     ports:
       - "80:80"
       - "443:443"
-      - "9001:9001"
     command: /sbin/init
     volumes:
-      - ./shells:/root/shells:ro
       - ../web_root:/var/www:rw
       - ./web/conf.d/extra:/etc/httpd/conf.d/extra:ro
-      - ./web/conf.d/vhosts.conf:/etc/httpd/conf.d/vhosts.conf:ro
     tty: true
     stdin_open: true
     privileged: true
     restart: always
     external_links:
-      - dba
+      - "php7.1-fpm"
+      - "php7.2-fpm"
+      - "php7.3-fpm"
+      - "php7.4-fpm"
     logging:
       options:
         max-size: 5m
@@ -42,6 +46,7 @@ services:
       - "3306:3306"
     volumes:
       - ./dba/my.cnf:/etc/my.cnf
+      - ./dba/mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: 12345678
       MYSQL_ROOT_HOST: "172.16.0.%"
@@ -70,6 +75,80 @@ services:
     networks:
       local-server-net:
         ipv4_address: 172.16.0.4
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.5
+
+  php7.1:
+    image: fpm-php:7.1
+    build:
+      context: ./php-fpm
+      dockerfile: 7.1_Dockerfile
+    container_name: php7.1-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.6
+
+  php7.2:
+    image: fpm-php:7.2
+    build:
+      context: ./php-fpm
+      dockerfile: 7.2_Dockerfile
+    container_name: php7.2-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.7
+
+  php7.3:
+    image: fpm-php:7.3
+    build:
+      context: ./php-fpm
+      dockerfile: 7.3_Dockerfile
+    container_name: php7.3-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.8
+
+  php7.4:
+    image: fpm-php:7.4
+    build:
+      context: ./php-fpm
+      dockerfile: 7.4_Dockerfile
+    container_name: php7.4-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.9
 
 networks:
   local-server-net:
