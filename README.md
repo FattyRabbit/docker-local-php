@@ -12,8 +12,11 @@
 基本的な考え方としてdocker-compose.ymlファイルを作成して管理します。コンテイナーは以下の構成で使用します。
 
 * ウェブサーバー：centos https://hub.docker.com/_/centos
-* DBA：mariadb https://hub.docker.com/_/mariadb
+* dba：mariadb https://hub.docker.com/_/mariadb
 * ドメイン管理：NSD https://hub.docker.com/r/hardware/nsd-dnssec
+* busybox：https://hub.docker.com/_/busybox
+* mailhog：https://hub.docker.com/r/mailhog/mailhog
+* php-fpm：https://hub.docker.com/_/php
 
 ## 2. サーバーの構成図
 
@@ -23,10 +26,16 @@
 /etc/hostsを修正するのではなくて、DNS設定でDNSサーバーのコンテイナーを作成して、DNSサーバーはvolumeでマウントされたconfigファイルに追記する方法です。
 
 ### ウェブサーバーの設定
-ApacheのVirtualHostの設定ファイルをvolumeでマウントして構成します。また、プロジェクトことにphpのバージョンが違う場合を想定してphpenvで対応しfpmで連携します。
+ApacheのVirtualHostの設定ファイルをvolumeでマウントして構成します。
 
 ### DBサーバーの設定
 直接に参照ができるようにEXPOSEで3306を開放し、Hostを含めてVPCグループの接続ができるように設定します。
+
+### busybox
+Dockerコンテナ内で解析などの作業をする必要が出た時に、コマンドなどが入っていないDockerイメージが相手の場合, BusyBoxが使えそうな気がします。
+
+### mailhog
+メールのテストして簡単に確認出来ます。
 
 ## 3. 設定＆インストール
 
@@ -59,10 +68,35 @@ $ git clone git@bitbucket.org:w012/docker-local-server.git
 Sourcetreeでも別に構いません。
 
 #### ウェブ設定ファイルの作成
-vhost.confファイルをCopyしてextraディレクトリのVhostファイルを追加します。
+web/conf.d/vhosts.confにextraのファイルが含まれるように設定されています。
 
 ```bash
-$ copy << Work Space >>/docker-local-server/web/conf.d/vhosts.conf.sample << Work Space >>/docker-local-server/web/conf.d/vhosts.conf
+$ vi web/conf.d/vhosts.conf
+Include conf.d/extra/*.conf
+```
+
+以下はextraにあるママの求人のconfファイルのサンプルです。
+```shell script
+<VirtualHost *:80>
+    DocumentRoot /var/www/mama9/mama9_wp
+    ServerName mama9.local
+
+    ErrorLog /var/log/httpd/mama9.local_error.log
+    CustomLog /var/log/httpd/mama9.local_requests.log common
+
+    LogLevel rewrite:trace8
+
+    <FilesMatch \.php$>
+        SetHandler "proxy:fcgi://php7.1-fpm:9000"
+    </FilesMatch>
+
+    <Directory "/var/www/mama9">
+        AllowOverride All
+        Options +FollowSymLinks -Indexes
+        DirectoryIndex index.php
+    </Directory>
+    DirectoryIndex index.php index.html
+</VirtualHost>
 ```
 
 #### コンテイナーのBuild＆実行
@@ -97,6 +131,3 @@ MacBook Pro「macOS Catalina」の環境で以下の手順で追加します。
 * 「適用」をクリック
 * ブラウザーで「73.local」を開いて画面を確認
 
-## 4.プロジェクトの管理
-
-__Shellを作成して管理する予定__
