@@ -41,7 +41,7 @@ Dockerコンテナ内で解析などの作業をする必要が出た時に、�
 
 ### dockerとdocker-composeのインストール
 
-iOSを前提です。Windows系はiOSを参考で構築してください。
+iOSを前提です。Windows系はiOSを参考で構築してください。既にdocker-composeが使用可能な場合は「テスト環境の構築」に飛ばしてください。
 
 1. https://store.docker.com/editions/community/docker-ce-desktop-mac にアクセスしてEdge版をダウンロード
 2. Docker for Mac (Stable) を実行中であれば停止
@@ -58,8 +58,15 @@ iOSを前提です。Windows系はiOSを参考で構築してください。
                             └ projectZ
 ```
 
-#### Dockerフォルダ
-上記の「docker-local-server」のところです。
+#### docker-local-server
+このレポジトリをcloneしてください。
+
+#### web_root
+プロジェクトをcloneします。ホスト（MAC）のweb_rootがウェブコンテイナーの「/var/www」にマウントされます。
+
+```shell script
+例：<<Work Space>>/web_root/mama9 => /var/www/mama9
+```
 
 ```bash
 $ cd << Work Space >>
@@ -122,6 +129,7 @@ __少々時間が掛かります。プライベートレジストリ環境が用
 
 MacBook Pro「macOS Catalina」の環境で以下の手順で追加します。
 
+ネットワークでDNSの追加
 * 「システム環境設定」＞「ネットワーク」を開く
 * メインで使用しているデバイス（Wi-Fiか有線）
 * 右下の「詳細」をクリック
@@ -130,4 +138,12 @@ MacBook Pro「macOS Catalina」の環境で以下の手順で追加します。
 * 「OK」をクリック
 * 「適用」をクリック
 * ブラウザーで「73.local」を開いて画面を確認
+
+コンマンドの実行：上記の実行のみだとdigとnslookupでは正常に参照ができますが、pingやブラウザーで参照ができないです。以下のファイルを作って追記しましょう。
+```shell script
+% sudo mkdir /etc/resolver/
+% sudo vi /etc/resolver/localnet.intra
+search		local
+nameserver	127.0.0.1
+```
 
