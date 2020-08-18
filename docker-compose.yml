@@ -23,6 +23,12 @@ services:
     stdin_open: true
     privileged: true
     restart: always
+    depends_on:
+      - "php7.1"
+      - "php7.2"
+      - "php7.3"
+      - "php7.4"
+      - "dba"
     external_links:
       - "php7.1-fpm"
       - "php7.2-fpm"
