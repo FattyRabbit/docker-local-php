@@ -6,6 +6,7 @@ services:
     volumes:
       - ../web_root:/var/www:rw
       - ./dba/mysql:/var/lib/mysql
+      - ./composer:/composer
   web:
     image: web
     build:
@@ -100,6 +101,7 @@ services:
     container_name: php7.1-fpm
     volumes:
       - ../web_root:/var/www
+      - ./composer:/composer
     external_links:
       - "dba"
     ports:
@@ -116,6 +118,7 @@ services:
     container_name: php7.2-fpm
     volumes:
       - ../web_root:/var/www
+      - ./composer:/composer
     external_links:
       - "dba"
     ports:
@@ -132,6 +135,7 @@ services:
     container_name: php7.3-fpm
     volumes:
       - ../web_root:/var/www
+      - ./composer:/composer
     external_links:
       - "dba"
     ports:
@@ -148,6 +152,7 @@ services:
     container_name: php7.4-fpm
     volumes:
       - ../web_root:/var/www
+      - ./composer:/composer
     external_links:
       - "dba"
     ports:
