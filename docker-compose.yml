@@ -68,14 +68,18 @@ services:
         ipv4_address: 172.16.0.3
 
   dns:
-    image: andyshinn/dnsmasq
+    image: dns
+    build:
+      context: ./dns
+      dockerfile: Dockerfile
+      args:
+        DOCKER_LOCAL_IP: $DOCKER_LOCAL_IP
     container_name: dns
     ports:
       - "53:53/udp"
       - "53:53/tcp"
     volumes:
       - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
-      - ./dns/hosts-dnsmasq:/etc/hosts-dnsmasq
     restart: always
     cap_add:
       - NET_ADMIN

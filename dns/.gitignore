@@ -1,4 +1,1 @@
-*
-!dnsmasq.conf
-!hosts-dnsmasq.sample
-!.gitignore
+hosts-dnsmasq
