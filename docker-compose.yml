@@ -80,6 +80,7 @@ services:
       - "53:53/tcp"
     volumes:
       - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./dns/host-names:/etc/host-names
     restart: always
     cap_add:
       - NET_ADMIN

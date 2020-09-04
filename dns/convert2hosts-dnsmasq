@@ -1,0 +1,12 @@
+#!/bin/ash
+#既存のhosts情報を削除
+rm -f /etc/hosts-dnsmasq
+
+#新しくhostsファイルを作成
+input="/etc/host-names"
+while IFS= read -r line
+do
+  echo "$DOCKER_LOCAL_IP $line" >> /etc/hosts-dnsmasq
+done < "$input"
+
+dnsmasq-origin $@
