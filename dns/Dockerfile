@@ -7,6 +7,7 @@ ARG DOCKER_LOCAL_IP=127.0.0.1
 # 変数を環境変数にセット
 ENV DOCKER_LOCAL_IP=$DOCKER_LOCAL_IP
 
+RUN ls -a /etc
 RUN mv /etc/dnsmasq /etc/dnsmasq-origin
 COPY convert2hosts-dnsmasq /etc/dnsmasq
 RUN chmod +x /etc/dnsmasq
