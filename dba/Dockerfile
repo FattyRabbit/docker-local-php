@@ -1,10 +1,6 @@
 FROM linuxserver/mysql
 MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
-# TimeZoneの設定のため
-RUN echo "USE mysql;" > /docker-entrypoint-initdb.d/timezones.sql && \
-    mysql_tzinfo_to_sql /usr/share/zoneinfo >> /docker-entrypoint-initdb.d/timezones.sql
-
 # TimeZoneの設定
 RUN apt-get update && \
     apt-get install -y tzdata
