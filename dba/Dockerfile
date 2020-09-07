@@ -1,4 +1,4 @@
-FROM mariadb
+FROM linuxserver/mysql
 MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
 # TimeZoneの設定のため
