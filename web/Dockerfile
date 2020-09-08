@@ -17,8 +17,8 @@ RUN yum -y update
 RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64
 
 # install leatest apache2.4.*
-# RUN yum install -y epel-release
-RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#RUN yum install -y epel-release
+RUN yum -y install R
 RUN	yum -y install https://repo.ius.io/ius-release-el7.rpm
 RUN	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
 	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/epel.repo
