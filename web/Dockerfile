@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:8
 MAINTAINER kugyon.i <fatty.rabbit.75@gmail.com>
 
 # Declare Arguments
@@ -12,28 +12,21 @@ RUN echo "LC_ALL=ja_JP.UTF-8" >> /etc/environment && \
 RUN localedef -f UTF-8 -i ja_JP /usr/lib/locale/ja_JP.UTF-8
 RUN localedef -f UTF-8 -i ja_JP ja_JP
 
-# yumアップデート
-RUN yum -y update
-RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64
+# epel-releaseのインストール
+RUN yum install -y epel-release &&\
+    yum clean all
 
-# install leatest apache2.4.*
-#RUN yum install -y epel-release
-RUN yum -y install wget
-RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    rpm -ivh epel-release-latest-7.noarch.rpm
-RUN	yum -y install https://repo.ius.io/ius-release-el7.rpm
-RUN	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
-	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/epel.repo
-RUN yum --enablerepo=epel -y install nghttp2 && \
-	yum -y install epel-release && \
-	yum -y install mailcap system-logos && \
-	yum -y install openssl wget && \
-    # Installing packages required for httpd 2.4.41
-	wget http://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/b/brotli-1.0.7-5.el7.x86_64.rpm && \
-	rpm -Uvh brotli-1.0.7-5.el7.x86_64.rpm && \
-	yum -y install brotli && \
-	yum -y --disablerepo=base,extras,updates --enablerepo=ius install httpd mod_ssl && \
-	yum clean all
+# remiのインストール
+RUN rpm -ivh http://ftp.riken.jp/Linux/remi/enterprise/remi-release-8.rpm
+
+# yumのアップデート
+RUN yum update -y &&\
+    yum clean all
+
+# 必要なモジュールのインストール(apache）
+RUN yum -y install httpd &&\
+    yum -y install openssl wget mod_ssl && \
+    yum clean all
 RUN sed -i -e "s|LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|" /etc/httpd/conf.modules.d/00-mpm.conf && \
 	sed -i -e "s|#LoadModule mpm_event_module modules/mod_mpm_event.so|LoadModule mpm_event_module modules/mod_mpm_event.so|" /etc/httpd/conf.modules.d/00-mpm.conf
 RUN sed -i -e "s|LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|" /etc/httpd/conf/httpd.conf && \
@@ -46,5 +39,4 @@ RUN mkdir -p /etc/ssl/private && \
 COPY conf.d/vhosts.conf /etc/httpd/conf.d/vhosts.conf
 
 # dockre can not use systemd without permission, apahce is started with httpd
-#CMD ["/usr/sbin/httpd", "-k", "start"]
 RUN systemctl enable httpd
