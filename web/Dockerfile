@@ -18,8 +18,8 @@ RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64
 
 # install leatest apache2.4.*
 RUN yum install -y epel-release && \
-	yum -y install https://repo.ius.io/ius-release-el7.rpm && \
-	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
+	yum -y install https://repo.ius.io/ius-release-el7.rpm
+RUN	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
 	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/epel.repo
 RUN yum --enablerepo=epel -y install nghttp2 && \
 	yum -y install epel-release && \
