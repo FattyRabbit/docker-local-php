@@ -44,10 +44,7 @@ services:
         ipv4_address: 172.16.0.2
 
   dba:
-    image: dba-mariadb
-    build:
-      context: ./dba
-      dockerfile: Dockerfile
+    image: linuxserver/mariadb
     container_name: dba
     ports:
       - "3306:3306"
