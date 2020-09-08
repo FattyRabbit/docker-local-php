@@ -29,7 +29,7 @@ RUN	yum -y install openssl wget && \
 #	wget http://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/b/brotli-1.0.7-5.el7.x86_64.rpm && \
 #	rpm -Uvh brotli-1.0.7-5.el7.x86_64.rpm && \
 #	yum -y install brotli && \
-	yum -y --disablerepo=base,extras,updates --enablerepo=ius install httpd mod_ssl && \
+	yum -y install httpd mod_ssl && \
 	yum clean all
 RUN sed -i -e "s|LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so|" /etc/httpd/conf.modules.d/00-mpm.conf && \
 	sed -i -e "s|#LoadModule mpm_event_module modules/mod_mpm_event.so|LoadModule mpm_event_module modules/mod_mpm_event.so|" /etc/httpd/conf.modules.d/00-mpm.conf
