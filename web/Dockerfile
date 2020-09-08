@@ -16,11 +16,12 @@ RUN localedef -f UTF-8 -i ja_JP ja_JP
 RUN yum -y update
 RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64
 
+RUN curl https://yahoo.co.jp
 # install leatest apache2.4.*
-#RUN yum install -y epel-release && \
-#	yum -y install https://repo.ius.io/ius-release-el7.rpm && \
-#	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
-#	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/epel.repo
+RUN yum install -y epel-release && \
+	yum -y install https://repo.ius.io/ius-release-el7.rpm && \
+	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/ius.repo && \
+	sed -i -e "s/enabled *= *1/enabled=0/g" /etc/yum.repos.d/epel.repo
 RUN yum --enablerepo=epel -y install nghttp2 && \
 	yum -y install epel-release && \
 	yum -y install mailcap system-logos && \
