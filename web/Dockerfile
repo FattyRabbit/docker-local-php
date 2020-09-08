@@ -14,7 +14,7 @@ RUN localedef -f UTF-8 -i ja_JP ja_JP
 
 # yumアップデート
 RUN yum -y update
-RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64
+RUN yum -y remove httpd httpd.x86_64 httpd-tools.x86_64 wget
 
 # install leatest apache2.4.*
 #RUN yum install -y epel-release
