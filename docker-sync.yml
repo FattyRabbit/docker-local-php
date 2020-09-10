@@ -1,8 +1,18 @@
 version: "2"
+
 syncs:
   web-root-sync:
     src: '../web_root'
-  conf-sync:
-    src: './config'
+    sync_strategy: 'unison'
+    sync_excludes: ['.DS_Store', '.git', '.gitignore', '.github', '.idea']
+  vhost-conf-sync:
+    src: './web/conf.d/extra'
+    sync_strategy: 'unison'
+    sync_excludes: ['.DS_Store', '.git', '.gitignore']
   composer-sync:
     src: './composer'
+    sync_strategy: 'unison'
+    sync_excludes: ['.DS_Store', '.git', '.gitignore']
+  dba-data-sync:
+    src: './dba/mysql'
+    sync_strategy: 'unison'

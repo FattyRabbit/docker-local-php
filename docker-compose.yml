@@ -1,5 +1,4 @@
 version: "3"
-
 services:
   web:
     image: web
@@ -13,7 +12,7 @@ services:
     command: /sbin/init
     volumes:
       - web-root-sync:/var/www
-      - conf-sync/web/conf.d/extra:/etc/httpd/conf.d/extra:ro
+      - vhost-conf-sync:/etc/httpd/conf.d/extra:ro
     tty: true
     stdin_open: true
     privileged: true
@@ -38,15 +37,13 @@ services:
         ipv4_address: 172.16.0.2
 
   dba:
-    image: dba
-    build:
-      context: ./dba
-      dockerfile: Dockerfile
+    image: mariadb
     container_name: dba
     ports:
       - "3306:3306"
     volumes:
-      - conf-sync/dba/my.cnf:/etc/my.cnf
+      - ./dba/my.cnf:/etc/my.cnf
+      - dba-data-sync:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: 12345678
       MYSQL_ROOT_HOST: "172.16.0.%"
@@ -72,8 +69,8 @@ services:
       - "53:53/udp"
       - "53:53/tcp"
     volumes:
-      - conf-sync/dns/dnsmasq.conf:/etc/dnsmasq.conf
-      - conf-sync/dns/host-names:/etc/host-names
+      - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./dns/host-names:/etc/host-names
     restart: always
     cap_add:
       - NET_ADMIN
@@ -98,8 +95,8 @@ services:
       dockerfile: 7.1_Dockerfile
     container_name: php7.1-fpm
     volumes:
-      - ../web_root:/var/www
-      - ./composer:/composer
+      - web-root-sync:/var/www
+      - composer-sync:/composer
     external_links:
       - "dba"
     ports:
@@ -115,8 +112,8 @@ services:
       dockerfile: 7.2_Dockerfile
     container_name: php7.2-fpm
     volumes:
-      - ../web_root:/var/www
-      - ./composer:/composer
+      - web-root-sync:/var/www
+      - composer-sync:/composer
     external_links:
       - "dba"
     ports:
@@ -132,8 +129,8 @@ services:
       dockerfile: 7.3_Dockerfile
     container_name: php7.3-fpm
     volumes:
-      - ../web_root:/var/www
-      - ./composer:/composer
+      - web-root-sync:/var/www
+      - composer-sync:/composer
     external_links:
       - "dba"
     ports:
@@ -149,8 +146,8 @@ services:
       dockerfile: 7.4_Dockerfile
     container_name: php7.4-fpm
     volumes:
-      - ../web_root:/var/www
-      - ./composer:/composer
+      - web-root-sync:/var/www
+      - composer-sync:/composer
     external_links:
       - "dba"
     ports:
@@ -170,7 +167,9 @@ networks:
 volumes:
   web-root-sync:
     external: true
-  conf-sync:
+  vhost-conf-sync:
     external: true
   composer-sync:
+    external: true
+  dba-data-sync:
     external: true
