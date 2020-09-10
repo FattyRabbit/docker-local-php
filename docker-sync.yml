@@ -1,0 +1,8 @@
+version: "2"
+syncs:
+  web-root-sync:
+    src: '../web_root'
+  conf-sync:
+    src: './config'
+  composer-sync:
+    src: './composer'

@@ -1,12 +1,6 @@
 version: "3"
+
 services:
-  datastore:
-    image: busybox
-    container_name: datastore
-    volumes:
-      - ../web_root:/var/www:rw
-      - ./dba/mysql:/var/lib/mysql
-      - ./composer:/composer
   web:
     image: web
     build:
@@ -18,8 +12,8 @@ services:
       - "443:443"
     command: /sbin/init
     volumes:
-      - ../web_root:/var/www:cached
-      - ./web/conf.d/extra:/etc/httpd/conf.d/extra:ro
+      - web-root-sync:/var/www
+      - conf-sync/web/conf.d/extra:/etc/httpd/conf.d/extra:ro
     tty: true
     stdin_open: true
     privileged: true
@@ -52,8 +46,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./dba/my.cnf:/etc/my.cnf
-      - ./dba/mysql:/var/lib/mysql
+      - conf-sync/dba/my.cnf:/etc/my.cnf
     environment:
       MYSQL_ROOT_PASSWORD: 12345678
       MYSQL_ROOT_HOST: "172.16.0.%"
@@ -79,8 +72,8 @@ services:
       - "53:53/udp"
       - "53:53/tcp"
     volumes:
-      - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
-      - ./dns/host-names:/etc/host-names
+      - conf-sync/dns/dnsmasq.conf:/etc/dnsmasq.conf
+      - conf-sync/dns/host-names:/etc/host-names
     restart: always
     cap_add:
       - NET_ADMIN
@@ -173,3 +166,11 @@ networks:
      driver: default
      config:
        - subnet: 172.16.0.0/24
+
+volumes:
+  web-root-sync:
+    external: true
+  conf-sync:
+    external: true
+  composer-sync:
+    external: true
