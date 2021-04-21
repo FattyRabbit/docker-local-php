@@ -1,0 +1,21 @@
+FROM php:7.2-fpm
+
+RUN apt-get update
+RUN apt-get install -y gcc make libjpeg-dev zlib1g-dev mariadb-client libfreetype6-dev libjpeg62-turbo-dev libpng-dev libmcrypt-dev libzip-dev unzip libwebp-dev libicu-dev \
+  && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-webp-dir=/usr/include/ \
+  && docker-php-ext-configure intl \
+  && docker-php-ext-install -j$(nproc) gd zip mysqli pdo_mysql bcmath exif intl
+
+RUN pecl install xdebug \
+  && docker-php-ext-enable xdebug exif intl
+
+#Composer install
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
+COPY php.ini /usr/local/etc/php/
+
+ENV COMPOSER_ALLOW_SUPERUSER 1
+
+ENV COMPOSER_HOME /composer
+
+ENV PATH $PATH:/composer/vendor/bin

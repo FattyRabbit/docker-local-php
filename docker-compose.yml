@@ -1,0 +1,169 @@
+version: "3"
+services:
+  datastore:
+    image: busybox
+    container_name: datastore
+    volumes:
+      - ../web_root:/var/www:rw
+  web:
+    image: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: web
+    ports:
+      - "80:80"
+      - "443:443"
+    command: /sbin/init
+    volumes:
+      - ../web_root:/var/www:cached
+      - ./web/conf.d/extra:/etc/httpd/conf.d/extra:ro
+    tty: true
+    stdin_open: true
+    privileged: true
+    restart: always
+    depends_on:
+      - "php7.1"
+      - "php7.2"
+      - "php7.3"
+      - "php7.4"
+      - "dba"
+    external_links:
+      - "php7.1-fpm"
+      - "php7.2-fpm"
+      - "php7.3-fpm"
+      - "php7.4-fpm"
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.2
+
+  dba:
+    image: yobasystems/alpine-mariadb
+    container_name: dba
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dba/my.cnf:/etc/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_ROOT_HOST: "172.16.0.%"
+      MYSQL_CHARSET: "utf8mb4"
+      TZ: Asia/Tokyo
+    restart: always
+    logging:
+      options:
+        max-size: 5m
+        max-file: "5"
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.3
+
+  dns:
+    image: dns
+    build:
+      context: ./dns
+      dockerfile: Dockerfile
+      args:
+        DOCKER_LOCAL_IP: $DOCKER_LOCAL_IP
+    container_name: dns
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    volumes:
+      - ./dns/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./dns/host-names:/etc/host-names
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.4
+
+  mailhog:
+    image: mailhog
+    build:
+      context: ./mailhog
+      dockerfile: Dockerfile
+    container_name: mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.5
+
+  php7.1:
+    image: fpm-php:7.1
+    build:
+      context: ./php-fpm
+      dockerfile: 7.1_Dockerfile
+    container_name: php7.1-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.6
+
+  php7.2:
+    image: fpm-php:7.2
+    build:
+      context: ./php-fpm
+      dockerfile: 7.2_Dockerfile
+    container_name: php7.2-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.7
+
+  php7.3:
+    image: fpm-php:7.3
+    build:
+      context: ./php-fpm
+      dockerfile: 7.3_Dockerfile
+    container_name: php7.3-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.8
+
+  php7.4:
+    image: fpm-php:7.4
+    build:
+      context: ./php-fpm
+      dockerfile: 7.4_Dockerfile
+    container_name: php7.4-fpm
+    volumes:
+      - ../web_root:/var/www
+    external_links:
+      - "dba"
+    ports:
+      - '9000'
+    networks:
+      local-server-net:
+        ipv4_address: 172.16.0.9
+
+networks:
+  local-server-net:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.16.0.0/24

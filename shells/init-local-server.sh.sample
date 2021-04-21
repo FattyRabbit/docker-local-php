@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# 設定項目
+SET_SERVER_NAME="sim-dokoyorimo"
+SET_DOCUMENT_ROOT="/sim.dokoyorimo.com/laravel_application"
+SET_ALLOW_DIRECTORY="/sim.dokoyorimo.com/laravel_application"
+SET_PHP_VERSION="7.2"
+
+source ../../docker-local-server/shells/functions.sh
+returnServerName=`confirmSubDomain ${SET_SERVER_NAME}`
+if [ "$?" == 1 ]; then
+  echo $returnServerName;
+  read -p "次の処理に進めますか？[y/n] > " input
+
+  isInsertDns=0
+  case "${input}" in			#変数strの内容で分岐
+    [Yy]|[Yy][Ee][Ss])
+      ;;
+    [Nn]|[Nn][Oo])
+      echo "設定処理を中止しました。"
+      exit 1;
+      ;;
+    *)
+      exit 1;
+  esac
+fi
+
+returnDocumentRoot=`confirmDocumentRoot ${SET_DOCUMENT_ROOT}`;
+if [ "$?" == 1 ]; then
+  echo $returnDocumentRoot;
+  read -p "次の処理に進めますか？[y/n] > " input
+  echo ""
+
+  case "${input}" in			#変数strの内容で分岐
+    [Yy]|[Yy][Ee][Ss])
+      ;;
+    [Nn]|[Nn][Oo])
+      echo "設定処理を中止しました。"
+      exit 1;
+      ;;
+    *)
+      exit 1;
+  esac
+fi
+
+isMakeVhost=1
+vhostName="../../docker-local-server/web/conf.d/extra/${SET_SERVER_NAME}.local.conf"
+if [ -f "$vhostName" ]; then
+  echo "${SET_SERVER_NAME}.local.confが既に存在しております。"
+  read -p "上書きして保存しますか？[y/n] > " input
+  echo ""
+
+  case "${input}" in			#変数strの内容で分岐
+    [Yy]|[Yy][Ee][Ss])
+      rm -f $vhostName
+      ;;
+    [Nn]|[Nn][Oo])
+      isMakeVhost=0
+      exit 1;
+      ;;
+    *)
+      exit 1;
+  esac
+fi
+
+export PHP_VERSION=$SET_PHP_VERSION
+export SERVER_NAME="${SET_SERVER_NAME}.local"
+export DOCUMENT_ROOT="/var/www${SET_DOCUMENT_ROOT}"
+export ALLOW_DIRECTORY="/var/www${SET_ALLOW_DIRECTORY}"
+if [ $isMakeVhost == 1 ]; then
+  # vhostファイルの作成
+  envsubst < ../../docker-local-server/shells/templates/httpd-vhost.tpl > $vhostName
+
+  docker exec -it web systemctl restart httpd
+fi
+
+if [ ! $(grep -q "${SERVER_NAME}.local" "../../docker-local-server/dns/host-names") ]; then
+  echo $SERVER_NAME >> ../../docker-local-server/dns/host-names
+  cd ../../docker-local-server && docker-compose restart dns
+fi
