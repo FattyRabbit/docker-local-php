@@ -1,4 +1,5 @@
 FROM golang:1.16-alpine3.12 as builder
+MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
 RUN set -x \
   && buildDeps='git musl-dev gcc' \
