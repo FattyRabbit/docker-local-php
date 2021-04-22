@@ -1,4 +1,5 @@
 FROM php:7.2-fpm
+MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
 RUN apt-get update
 RUN apt-get install -y gcc make libjpeg-dev zlib1g-dev mariadb-client libfreetype6-dev libjpeg62-turbo-dev libpng-dev libmcrypt-dev libzip-dev unzip libwebp-dev libicu-dev \
