@@ -1,5 +1,5 @@
 FROM centos:7
-MAINTAINER kugyon.i <fatty.rabbit.75@gmail.com>
+MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
 # Declare Arguments
 ARG SERVER_NAME=local
