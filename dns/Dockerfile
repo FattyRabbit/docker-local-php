@@ -1,5 +1,5 @@
 FROM alpine:3.12
-MAINTAINER kugyon.i <fatty.rabbit.75@gmail.com>
+MAINTAINER kugyon.i <fatty.rabbit.dev@gmail.com>
 
 # 外部からの受付とデフォルト値
 ARG DOCKER_LOCAL_IP=127.0.0.1
