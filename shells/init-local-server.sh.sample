@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # 設定項目
-SET_SERVER_NAME="sim-dokoyorimo"
-SET_DOCUMENT_ROOT="/sim.dokoyorimo.com/laravel_application"
-SET_ALLOW_DIRECTORY="/sim.dokoyorimo.com/laravel_application"
+SET_SERVER_NAME="sample"
+SET_DOCUMENT_ROOT="/sample.com/laravel_application"
+SET_ALLOW_DIRECTORY="/sample.com/laravel_application"
 SET_PHP_VERSION="7.2"
 
 source ../../docker-local-server/shells/functions.sh
